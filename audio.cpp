@@ -1,10 +1,13 @@
 #include <iostream>
 #include <fstream>
+#include <cmath>
 #include <cstdlib>
 #include <stdint.h> // for uint32_t
 #include <vector>
 
 using namespace std;
+
+static const double PI = 3.14159265;
 
 class WaveFileChunk
 {
@@ -105,12 +108,42 @@ class WaveFileDataChunk: public WaveFileChunk
 
 class WaveForm
 {
-	double S(unsigned int t);
+	virtual double S(double x);
 	public:
-	double operator()();
+	double operator()(double x)
+	{
+		return S(x);
+	}
 //	WaveForm operator+(const WaveForm& wf);
 };
 
+class SinWaveForm
+{
+	//double amp;
+	double freq;
+	//double phase;
+
+	virtual double S(double x)
+	{
+		return sin(2*PI*x);
+	}
+	
+	uint16_t modulate(unsigned int t, double max, int bits)
+	{
+		double t_i = (double)t/freq;
+		double s_i = (1<<(bits-1))*abs(S(t_i))/max;
+		return (uint16_t)s_i;
+	}
+
+	public:
+	SinWaveForm(double freq)
+	{
+	//	this->amp = amp;
+		this->freq = freq;
+	//	this->phase = phase;
+	}
+
+};
 
 /*
 class WaveFormMixer: public WaveForm
