@@ -30,14 +30,14 @@ public:
 	WaveFileHeader()
 	{
 		this->id = "RIFF";
-		this->size = 100; //
+		this->size = 100; // IMPLEMENT SIZE COUNT
 		this->type = "WAVE";
 	}
 
 	virtual void serialize(std::ofstream& os)
 	{
 		os << this->id; //<< this->size << this->type;
-		os.write((char *)&(this->size), sizeof(this->size));		
+		os.write((char *)&(this->size), sizeof(this->size));	// IMPLEMENT SIZE COUNT	
 		os << this->type;
 
 		for(std::vector<WaveFileChunk*>::iterator i = this->chunks.begin(); i != this->chunks.end(); ++i)
@@ -82,14 +82,27 @@ public:
 
 };
 
-/*
+
 class WaveFileDataChunk: public WaveFileChunk
 {
-	// void * data;
+	public:
+	WaveFileDataChunk()
+	{
+		this->id = "data";
+		this->size = 2049;	// IMPLEMENT SIZE COUNT
+	}
 	
+	virtual void serialize(std::ofstream& os)
+	{
+		os << this->id;
+		os.write((char *)&(this->size), sizeof(this->size));
+		
+		/* IMPLEMENT DATA SERIALIZATION!!! */
+
+	}
 
 };
-*/
+
 class WaveForm
 {
 	double S(unsigned int t);
@@ -137,8 +150,10 @@ int main(int argc, char** argv)
 //WaveFileFormatChunk(uint16_t compression, uint16_t channels, uint32_t rate, uint32_t bpsec, uint16_t align, uint16_t sample)
 
 	WaveFileFormatChunk fmt(1, 1, 44100, 0x123456, 4, 16);
-	
+	WaveFileDataChunk data;	
+
 	wfh.add(&fmt);
+	wfh.add(&data);
 
 	wfh.serialize(outfile);
 
@@ -146,5 +161,4 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
 
