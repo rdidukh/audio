@@ -1,12 +1,14 @@
-l#include <iostream>
-#include <ifstream>
+#include <iostream>
+#include <fstream>
 #include <cstdlib>
+#include <stdint.h> // for uint32_t
 #include <vector>
 
 using namespace std;
 
 class WaveFileChunk
 {
+	protected:
 	std::string id;
 	uint32_t size;
 	public:
@@ -16,24 +18,30 @@ class WaveFileChunk
 class WaveFileHeader: public WaveFileChunk
 {
 	std::string type;
-	std::vector<WaveFileChunk> chunks;
+	std::vector<WaveFileChunk *> chunks;
 
 public:
 	
+	void add(WaveFileChunk* wfc)
+	{
+		this->chunks.push_back(wfc);
+	}
+
 	WaveFileHeader()
 	{
-		this->id << "RIFF";
+		this->id = "RIFF";
 		this->size = 100; //
 		this->type = "WAVE";
 	}
 
 	virtual void serialize(std::ofstream& os)
 	{
-		os << this->id << this->size << this->type;
+		os << this->id; //<< this->size << this->type;
+		os.write((char *)&(this->size), sizeof(this->size));		
+		os << this->type;
 
-		for(std::vector<WaveFileChunk>::iterator i = chunks.begin(); i != chunks.end(); ++i)
-			i->serialize(os);
-
+		for(std::vector<WaveFileChunk*>::iterator i = this->chunks.begin(); i != this->chunks.end(); ++i)
+			(*i)->serialize(os);
 	}
 
 };
@@ -50,7 +58,14 @@ class WaveFileFormatChunk: public WaveFileChunk
 public:
 	virtual void serialize(std::ofstream& os)
 	{
-		os << this->id << this->size << this->compression << this->channels << this->rate << this->bpsec << this->align << this->sample;
+		os << this->id;
+		os.write((char *)&(this->size), sizeof(this->size));
+		os.write((char *)&(this->compression), sizeof(this->compression));
+		os.write((char *)&(this->channels), sizeof(this->channels));
+		os.write((char *)&(this->rate), sizeof(this->rate));
+		os.write((char *)&(this->bpsec), sizeof(this->bpsec));
+		os.write((char *)&(this->align), sizeof(this->align));
+		os.write((char *)&(this->sample), sizeof(this->sample));
 	}
 
 	WaveFileFormatChunk(uint16_t compression, uint16_t channels, uint32_t rate, uint32_t bpsec, uint16_t align, uint16_t sample)
@@ -67,13 +82,14 @@ public:
 
 };
 
+/*
 class WaveFileDataChunk: public WaveFileChunk
 {
 	// void * data;
 	
 
 };
-
+*/
 class WaveForm
 {
 	double S(unsigned int t);
@@ -82,13 +98,6 @@ class WaveForm
 //	WaveForm operator+(const WaveForm& wf);
 };
 
-template<typename SampleType>
-SampleType modulate(double val, double max, int bits)
-{
-	SampleType sample = 0;
-
-	return sample;
-}
 
 /*
 class WaveFormMixer: public WaveForm
@@ -116,7 +125,7 @@ int main(int argc, char** argv)
 {
 	std::ofstream outfile;
 		
-	outfile.open(argv[1], ios::out | ios::binary | ios::trunc | ios::app);	
+	outfile.open(argv[1], ofstream::out | ofstream::binary | ofstream::trunc);// | ofstream::binary | ofstream::trunc | ofstream::app);	
 
 	if(outfile.fail())
 	{
@@ -124,12 +133,18 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
+	WaveFileHeader wfh;
+//WaveFileFormatChunk(uint16_t compression, uint16_t channels, uint32_t rate, uint32_t bpsec, uint16_t align, uint16_t sample)
+
+	WaveFileFormatChunk fmt(1, 1, 44100, 0x123456, 4, 16);
 	
+	wfh.add(&fmt);
+
+	wfh.serialize(outfile);
 
 	outfile.close();
 
 	return 0;
-
 }
 
 
