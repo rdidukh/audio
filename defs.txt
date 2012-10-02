@@ -1,0 +1,12 @@
+y = s(t); waveform (e.x. sin(2*pi*440*t))
+
+f - sample rate (e.x. 44100 Hz)
+
+b - bits per sample (ex. 16)
+
+t_i = i/f
+
+y_i = s(t_i) = s(i/f)
+
+q_i = 2^(b-1) * y_i / y_max
+
