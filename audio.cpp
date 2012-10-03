@@ -21,7 +21,7 @@ class WaveForm
 	uint16_t operator()(unsigned int t, unsigned int rate, double max, int bits)
 	{
 		double t_i = (double)t/rate;
-		double s_i = (1<<(bits-1))*abs(S(t_i))/max;
+		double s_i = (1<<(bits-1))*S(t_i)/max;
 		return (uint16_t)s_i;
 	}
 
@@ -84,7 +84,7 @@ public:
 	{
 		os << this->id; //<< this->size << this->type;
 
-		this->size = 8;
+		this->size = 4;
 		for(std::vector<WaveFileChunk*>::iterator i = this->chunks.begin(); i != this->chunks.end(); ++i)
 			this->size += (*i)->getSize() + 8;
 
@@ -179,13 +179,9 @@ class WaveFileDataChunk: public WaveFileChunk
 		{
 			for(unsigned int j = 0; j < fmt->getChannels(); j++)
 			{
-		//		std::cout << "1" << std::endl;
 				WaveForm* wf = this->channels[j];
-		//		std::cout << "2" << std::endl;
 				uint16_t q = (*wf)(i, this->fmt->getRate(), 1.0, 16);
-		//	std::cout << "3" << std::endl;
 				os.write((char *)&q, sizeof(q));
-		//		std::cout << "4" << std::endl;
 			}
 		}
 
@@ -219,7 +215,7 @@ int main(int argc, char** argv)
 {
 	std::ofstream outfile;
 		
-	outfile.open(argv[1], ofstream::out | ofstream::binary | ofstream::trunc);// | ofstream::binary | ofstream::trunc | ofstream::app);	
+	outfile.open(argv[1], ofstream::out | ofstream::binary | ofstream::trunc);
 
 	if(outfile.fail())
 	{
@@ -237,10 +233,7 @@ int main(int argc, char** argv)
 
 	SinWaveForm * swf = new SinWaveForm(440);
 
-//	std::cout << "???" << std::endl;
-	
 	data->setChannelWaveForm(0, swf);
-	//data->setLength();
 
 	wfh.serialize(outfile);
 
