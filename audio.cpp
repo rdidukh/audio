@@ -21,7 +21,7 @@ class WaveForm
 	uint16_t operator()(unsigned int t, unsigned int rate, double max, int bits)
 	{
 		double t_i = (double)t/rate;
-		double s_i = (1<<(bits-1))*S(t_i)/max;
+		double s_i = ((1<<(bits-1))-1)*S(t_i)/max;
 		return (uint16_t)s_i;
 	}
 
@@ -49,35 +49,35 @@ class SinWaveForm: public WaveForm
 	}
 
 };
-/*
+
+
 class SquareWaveForm: public WaveForm
 {
 	//double amp;
 	double freq;
-	double width;
 	//double phase;
 
 	virtual double S(double x)
 	{
-		//return sin(2*PI*this->freq*x);
-		
-	
+		double temp = x*freq;	
+		temp = temp - floor(temp);
+		return temp<=0.5 ? 1 : -1;
 	}
 	
 	public:
-	SinWaveForm(double freq, double width)
+	SquareWaveForm(double freq)
 	{
 	//  0 < width < 1
-
+		
 	//	this->amp = amp;
 		this->freq = freq;
-		this->width = width;
+	//	this->width = width;
 	//	this->phase = phase;
 	}
 
 };
 
-*/
+
 
 class WaveFileChunk
 {
@@ -210,6 +210,9 @@ class WaveFileDataChunk: public WaveFileChunk
 			for(unsigned int j = 0; j < fmt->getChannels(); j++)
 			{
 				WaveForm* wf = this->channels[j];
+				
+				if(wf == NULL) throw std::string("WaveForm is NULL");
+	
 				uint16_t q = (*wf)(i, this->fmt->getRate(), 1.0, 16);
 				os.write((char *)&q, sizeof(q));
 			}
@@ -254,13 +257,14 @@ int main(int argc, char** argv)
 
 	WaveFileHeader wfh;
 
-	WaveFileFormatChunk* fmt = new WaveFileFormatChunk(1, 2, 44100, 16);
+	WaveFileFormatChunk* fmt = new WaveFileFormatChunk(1, 1, 44100, 16);
 	WaveFileDataChunk* data = new WaveFileDataChunk(fmt, 44100);	
 	
 	wfh.add(fmt);
 	wfh.add(data);
 
-	SinWaveForm* swf0 = new SinWaveForm(440);
+	//SinWaveForm* swf0 = new SinWaveForm(440);
+	SquareWaveForm * swf0 = new SquareWaveForm(440);
 	//SinWaveForm* swf1 = new SinWaveForm(500);
 
 	data->setChannelWaveForm(0, swf0);
