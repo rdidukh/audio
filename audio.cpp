@@ -153,13 +153,13 @@ class WaveFileDataChunk: public WaveFileChunk
 		this->id = "data";
 		this->fmt = fmt;
 		this->length = length;
-		this->size = fmt->getChannels()*fmt->getRate()*fmt->getSample()/8;
+		this->size = length*fmt->getChannels()*fmt->getRate()*fmt->getSample()/8;
 	}
 	
 	void setLength(unsigned int length)
 	{
 		this->length = length;
-		this->size = this->fmt->getChannels()*this->fmt->getRate()*this->fmt->getSample()/8;
+		this->size = length*this->fmt->getChannels()*this->fmt->getRate()*this->fmt->getSample()/8;
 	}
 
 	void setChannelWaveForm(unsigned int ch, WaveForm* wf)
@@ -226,12 +226,12 @@ int main(int argc, char** argv)
 	WaveFileHeader wfh;
 
 	WaveFileFormatChunk *fmt = new WaveFileFormatChunk(1, 1, 44100, 16);
-	WaveFileDataChunk *data = new WaveFileDataChunk(fmt, 44100);	
+	WaveFileDataChunk *data = new WaveFileDataChunk(fmt, 5*44100);	
 	
 	wfh.add(fmt);
 	wfh.add(data);
 
-	SinWaveForm * swf = new SinWaveForm(440);
+	SinWaveForm * swf = new SinWaveForm(110);
 
 	data->setChannelWaveForm(0, swf);
 
