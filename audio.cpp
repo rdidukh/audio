@@ -55,13 +55,24 @@ class SquareWaveForm: public WaveForm
 {
 	//double amp;
 	double freq;
-	//double phase;
+	double width;
 
 	virtual double S(double x)
 	{
 		double temp = x*freq;	
 		temp = temp - floor(temp);
-		return temp<=0.5 ? 1 : -1;
+
+		if(temp <= 0.5)
+		{
+			return 2*temp <= width ? 1 : 0;
+		}
+		else
+		{
+			return 2*temp-1 <= width ? -1 : 0;
+		}	
+	
+		
+		//return (temp<=0.5) ? 1 : -1;
 	}
 	
 	public:
@@ -71,6 +82,18 @@ class SquareWaveForm: public WaveForm
 		
 	//	this->amp = amp;
 		this->freq = freq;
+		this->width = 1;
+	//	this->width = width;
+	//	this->phase = phase;
+	}
+
+	SquareWaveForm(double freq, double width)
+	{
+	//  0 < width < 1
+		
+	//	this->amp = amp;
+		this->freq = freq;
+		this->width = width;
 	//	this->width = width;
 	//	this->phase = phase;
 	}
@@ -264,7 +287,7 @@ int main(int argc, char** argv)
 	wfh.add(data);
 
 	//SinWaveForm* swf0 = new SinWaveForm(440);
-	SquareWaveForm * swf0 = new SquareWaveForm(440);
+	SquareWaveForm * swf0 = new SquareWaveForm(440, 1);
 	//SinWaveForm* swf1 = new SinWaveForm(500);
 
 	data->setChannelWaveForm(0, swf0);
