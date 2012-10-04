@@ -12,8 +12,9 @@ static const double PI = 3.14159265;
 
 class WaveForm
 {
+public:
 	virtual double S(double x)=0;
-	public:
+	
 	double operator()(double x)
 	{
 		return S(x);
@@ -22,7 +23,10 @@ class WaveForm
 	uint16_t operator()(unsigned int t, unsigned int rate, double max, int bits)
 	{
 		double t_i = (double)t/rate;
-		double s_i = ((1<<(bits-1))-1)*S(t_i)/max;
+		double s_i = S(t_i);
+	//	if(s_i > max) s_i = max;
+	//	if(s_i < -max) s_i = -max;
+		s_i = ((1<<(bits-1))-1)*s_i/max;
 		return (uint16_t)s_i;
 	}
 
@@ -35,13 +39,13 @@ class SinWaveForm: public WaveForm
 	//double amp;
 	double freq;
 	//double phase;
-
+public:
 	virtual double S(double x)
 	{
 		return sin(2*PI*this->freq*x);
 	}
 	
-	public:
+	
 	SinWaveForm(double freq)
 	{
 	//	this->amp = amp;
@@ -58,6 +62,7 @@ class SquareWaveForm: public WaveForm
 	double freq;
 	double width;
 
+public:
 	virtual double S(double x)
 	{
 		double temp = x*freq;	
@@ -76,7 +81,7 @@ class SquareWaveForm: public WaveForm
 		//return (temp<=0.5) ? 1 : -1;
 	}
 	
-	public:
+	
 	SquareWaveForm(double freq)
 	{
 	//  0 < width < 1
@@ -106,9 +111,7 @@ class WaveFormMixer: public WaveForm
 	std::vector<std::pair<WaveForm*, double> > wfs;
 
 	double coef;
-	
-	bool mixed;
-
+public:
 	virtual double S(double x)
 	{
 		double result = 0;
@@ -118,29 +121,35 @@ class WaveFormMixer: public WaveForm
 			result += (*(i->first))(x) * i->second;
 		}
 		
-		return result;
+		return this->coef*result;
 	}
-
-	public:
+	
+	WaveFormMixer()
+	{
+		this->coef = 1.0;
+	}
+	
 	void add(WaveForm* wf, double amp = 1.0)
 	{
 		wfs.push_back(std::make_pair<WaveForm*, double>(wf, amp));
 	}
 
-	void mix(unsigned int rate, unsigned int start, unsigned int end, double norm)
+	void norm(unsigned int rate, unsigned int start, unsigned int end, double norm=1.0)
 	{
 		double max = S((double)start/rate);
 
 		for(unsigned int i = start+1; i < end; i++)
 		{
 			double s_i = S((double)i/rate);
-			if(max < s_i) max = s_i;
+			if(max < abs(s_i)) max = s_i;
 		}
+		
+		if(norm != 0) this->coef = norm/max; else this->coef = 1.0;
 	}
 
 	void clear()
 	{
-		wfs.clear();
+		this->wfs.clear();
 	}
 
 };
@@ -310,12 +319,25 @@ int main(int argc, char** argv)
 
 	SinWaveForm* swf0 = new SinWaveForm(440);
 	//SquareWaveForm * swf0 = new SquareWaveForm(440, 1);
-	SinWaveForm* swf1 = new SinWaveForm(500);
+	SinWaveForm* swf1 = new SinWaveForm(554);
+	SinWaveForm* swf2 = new SinWaveForm(659);
 
 	WaveFormMixer *wfmx = new WaveFormMixer();
 
-	wfmx->add(swf0);
-	wfmx->add(swf1);
+	wfmx->add(swf0, 0.1);
+	wfmx->add(swf1, 0.9);
+	wfmx->add(swf2, 0.1);
+	
+	for(unsigned int i = 1; i < 400; i++)
+	//	std::cout << i << " " << swf0->S((double)i/44100) << " " << swf1->S((double)i/44100) << " " << swf2->S((double)i/44100) << " " << wfmx->S((double)i/44100) << std::endl;
+	std::cout << std::endl;
+	
+	wfmx->norm(44100, 0, 44100/440, 0.95);
+		
+	for(unsigned int i = 1; i < 450; i++)
+		std::cout << i << " " << (*wfmx)((double)i/44100) << " " << std::hex << (*wfmx)(i, 44100, 1.0, 16) << std::dec << std::endl;
+	std::cout << std::endl;
+	
 		
 	data->setChannelWaveForm(0, wfmx);
 	//data->setChannelWaveForm(1, swf1);
