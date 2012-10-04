@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <stdint.h> // for uint32_t
 #include <vector>
+//#include <pair>
 
 using namespace std;
 
@@ -100,7 +101,49 @@ class SquareWaveForm: public WaveForm
 
 };
 
+class WaveFormMixer: public WaveForm
+{
+	std::vector<std::pair<WaveForm*, double> > wfs;
 
+	double coef;
+	
+	bool mixed;
+
+	virtual double S(double x)
+	{
+		double result = 0;
+
+		for(std::vector<std::pair<WaveForm*, double> >::iterator i = wfs.begin(); i != wfs.end(); ++i)
+		{
+			result += (*(i->first))(x) * i->second;
+		}
+		
+		return result;
+	}
+
+	public:
+	void add(WaveForm* wf, double amp = 1.0)
+	{
+		wfs.push_back(std::make_pair<WaveForm*, double>(wf, amp));
+	}
+
+	void mix(unsigned int rate, unsigned int start, unsigned int end, double norm)
+	{
+		double max = S((double)start/rate);
+
+		for(unsigned int i = start+1; i < end; i++)
+		{
+			double s_i = S((double)i/rate);
+			if(max < s_i) max = s_i;
+		}
+	}
+
+	void clear()
+	{
+		wfs.clear();
+	}
+
+};
 
 class WaveFileChunk
 {
@@ -244,27 +287,6 @@ class WaveFileDataChunk: public WaveFileChunk
 
 };
 
-/*
-class WaveFormMixer: public WaveForm
-{
-	std::vector<std::pair<WaveForm&, double>> wfs;
-
-	public:
-	void add(WaveForm& wf, double amp)
-	{
-		wfs.push_back(std::make_pair<WaveForm&, double>(wf, amp));
-	}
-
-	WaveForm mix();
-
-	void clear()
-	{
-		wfs.clear();
-	}
-
-};
-
-*/
 
 int main(int argc, char** argv)
 {
@@ -286,11 +308,16 @@ int main(int argc, char** argv)
 	wfh.add(fmt);
 	wfh.add(data);
 
-	//SinWaveForm* swf0 = new SinWaveForm(440);
-	SquareWaveForm * swf0 = new SquareWaveForm(440, 1);
-	//SinWaveForm* swf1 = new SinWaveForm(500);
+	SinWaveForm* swf0 = new SinWaveForm(440);
+	//SquareWaveForm * swf0 = new SquareWaveForm(440, 1);
+	SinWaveForm* swf1 = new SinWaveForm(500);
 
-	data->setChannelWaveForm(0, swf0);
+	WaveFormMixer *wfmx = new WaveFormMixer();
+
+	wfmx->add(swf0);
+	wfmx->add(swf1);
+		
+	data->setChannelWaveForm(0, wfmx);
 	//data->setChannelWaveForm(1, swf1);
 
 	wfh.serialize(outfile);
@@ -300,7 +327,8 @@ int main(int argc, char** argv)
 	delete fmt;
 	delete data;
 	delete swf0;
-	//delete swf1;	
+	delete swf1;	
+	delete wfmx;
 
 	return 0;
 }
