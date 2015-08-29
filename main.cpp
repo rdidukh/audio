@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
 
 	while(!wf.eof())
 	{
-		unsigned long frames = wf.getFrames(buffer, 10000);
+		unsigned long frames = wf.getFrames(buffer, 10000, 500);
 		device.write(buffer, frames);
 	}
 

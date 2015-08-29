@@ -21,7 +21,9 @@ class WavFile
 	uint16_t blockAlign;
 	uint16_t bitsPerSample;
 	uint32_t dataSize;
-	unsigned int index;
+	unsigned int numFrames;
+	unsigned int index; // index of current frame
+	unsigned int index1000; // 
 
 	std::vector<uint8_t> data;
 
@@ -38,21 +40,39 @@ class WavFile
 	unsigned long getFrames(char * buffer, unsigned long frames)
 	{
 		unsigned long bytesPerFrame = numChannels*bitsPerSample/8;
-		unsigned long bytesToCopy = frames * bytesPerFrame;
 
-		if(index + bytesToCopy > dataSize)
-			bytesToCopy = dataSize-index;
-
-		memcpy(buffer, &data[index], bytesToCopy);
+		if(index+frames > numFrames)
+			frames = numFrames - index;
+		
+		memcpy(buffer, &data[index*bytesPerFrame], frames*bytesPerFrame);
 	
-		index += bytesToCopy;
-				
-		return bytesToCopy/bytesPerFrame;
+		index += frames;
+		index1000 += 1000*frames;				
+
+		return frames;
 	}
+
+	unsigned long getFrames(char * buffer, unsigned long frames, int speed)
+	{
+		unsigned long bytesPerFrame = numChannels*bitsPerSample/8;
+		unsigned long res = 0;
+		for(unsigned long i = 0; i < frames && index < numFrames; i++)
+		{
+			memcpy(buffer, &data[index*bytesPerFrame], bytesPerFrame);
+			buffer += bytesPerFrame;
+			index1000 += speed; 
+			index = index1000 / 1000;
+			res++;
+		}
+
+//		for(int i = 0; i < frames && index
+		return res;
+	}
+
 
 	bool eof()
 	{
-		return index == dataSize;
+		return index >= numFrames;
 	}
 };
 

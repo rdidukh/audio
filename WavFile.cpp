@@ -96,6 +96,8 @@ WavFile::WavFile(const std::string & fileName): failBit(false), index(0)
 		if(file.fail())
 			throw std::string("Not a wave file(5)");
 
+		numFrames = dataSize/(numChannels*bitsPerSample/8);
+
 		file.close();
 	}
 	catch(const std::string & str)
