@@ -1,27 +1,38 @@
-#include "WavFile.h"
+#include "WavFileSoundStream.h"
 #include "LinuxPlaybackDevice.h"
+#include "AudioDevice.h"
 
 int main(int argc, char * argv[])
 {
 	assert(argc == 2);
 
-	WavFile wf(argv[1]);
+    WavFileInputSoundStream waveFile(argv[1]);
 
-	if(wf.fail())
+    if(waveFile.fail())
 	{
-		std::cout << wf.failString() << std::endl;
+        std::cout << waveFile.failString() << std::endl;
 		return 1;
 	}
 
 	LinuxPlaybackDevice device("default");
 
-	char buffer[10000*4];
+    if(device.fail())
+    {
+        std::cout << device.failString() << std::endl;
+        return 1;
+    }
 
-	while(!wf.eof())
-	{
-		unsigned long frames = wf.getFrames(buffer, 10000, 500);
-		device.write(buffer, frames);
-	}
+    unsigned long frames = 1000;
+
+    waveFile.setBufferSize(frames);
+    device.setBufferSize(frames);
+
+    SimpleAudioDevice player(waveFile, device);
+
+    while(!player.end())
+    {
+        player.process();
+    }
 
 	return 0;
 }

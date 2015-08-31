@@ -1,6 +1,6 @@
 #include "LinuxPlaybackDevice.h"
 
-LinuxPlaybackDevice::LinuxPlaybackDevice(const std::string & deviceName):
+LinuxPlaybackDevice::LinuxPlaybackDevice(const std::string & deviceName, unsigned int numChannels, unsigned int sampleRate, unsigned int frames):
 handle(nullptr),
 params(nullptr)
 {
@@ -19,27 +19,15 @@ params(nullptr)
 	snd_pcm_hw_params_set_access(handle, params,
                   SND_PCM_ACCESS_RW_INTERLEAVED);
 
-	/* Signed 16-bit little-endian format */
-	snd_pcm_hw_params_set_format(handle, params,                 SND_PCM_FORMAT_S16_LE);
+    setFormat();
 
-	/* Two channels (stereo) */
-	snd_pcm_hw_params_set_channels(handle, params, 2);
+	setChannels(numChannels);
 
-	unsigned int sampleRate = 44100;
-	snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+	setSampleRate(sampleRate);
 
-	  /* Set period size to 32 frames. */
-	snd_pcm_uframes_t frames = 10000;
-	snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
+	setFrames(frames);
 
-	/* Write the parameters to the driver */
-	rc = snd_pcm_hw_params(handle, params);
-	if (rc < 0) throw("1");
-
-	/* Use a buffer large enough to hold one period */	
-	snd_pcm_hw_params_get_period_size(params, &frames,
-                                &dir);
-	// int size = frames * 4; /* 2 bytes/sample, 2 channels */
+	setParams();
 }	
 
 int LinuxPlaybackDevice::write(char * buffer, unsigned long frames)
@@ -69,6 +57,11 @@ LinuxPlaybackDevice::~LinuxPlaybackDevice()
 	{
 		snd_pcm_drain(handle);
 		snd_pcm_close(handle);
+	}
+
+	if(params)
+	{
+		snd_pcm_hw_params_free(params);
 	}
 }
 

@@ -5,9 +5,10 @@
 #include <cstdint>
 #include <vector>
 
-#include "WavFile.h"
+#include "SoundStream.h"
+#include "WavFileSoundStream.h"
 
-template<class T> void WavFile::read(std::istream & is, T & t)
+template<class T> void WavFileInputSoundStream::read(std::istream & is, T & t)
 {
 	is.read(reinterpret_cast<char *>(&t), sizeof(T));
 	if(is.eof()) throw std::string("EOF");
@@ -15,17 +16,7 @@ template<class T> void WavFile::read(std::istream & is, T & t)
 	if(is.bad()) throw std::string("BAD");
 }
 
-bool WavFile::fail() const
-{
-	return failBit;
-}
-
-const std::string & WavFile::failString() const
-{
-	return failStr;
-}
-
-WavFile::WavFile(const std::string & fileName): failBit(false), index(0)
+WavFileInputSoundStream::WavFileInputSoundStream(const std::string & fileName): index(0)
 {
 	try
 	{
@@ -49,7 +40,7 @@ WavFile::WavFile(const std::string & fileName): failBit(false), index(0)
 
 		read(file, chunkId);
 
-		if(std::string(chunkId, 4) != "fmt ")
+        if(std::string(chunkId, 4) != "fmt " && std::string(chunkId, 4) != "smpl")
 			throw std::string("Not a wave file(3)");
 
 		uint32_t subchunkSize;
@@ -66,10 +57,14 @@ WavFile::WavFile(const std::string & fileName): failBit(false), index(0)
 		if(audioFormat != 1)
 			throw std::string("Not supported audio format: ")+std::to_string(audioFormat);
 
+        uint16_t numChannels;
+
 		read(file, numChannels);
 
 		if(numChannels != 1 && numChannels != 2)
 			throw std::string("Not supported number of channels: ")+std::to_string(numChannels);
+
+        uint32_t sampleRate;
 
 		read(file, sampleRate);
 
@@ -77,7 +72,10 @@ WavFile::WavFile(const std::string & fileName): failBit(false), index(0)
 
 		read(file, blockAlign);
 
+        uint16_t bitsPerSample;
 		read(file, bitsPerSample);
+
+        setSampleSize(bitsPerSample);
 
 		if(subchunkSize > 16)
 			file.ignore(subchunkSize-16);
@@ -102,8 +100,8 @@ WavFile::WavFile(const std::string & fileName): failBit(false), index(0)
 	}
 	catch(const std::string & str)
 	{
-		failBit = true;
-		failStr = str;
+        this->setFailString(str);
+        this->setFail(true);
 	}
 }
 
