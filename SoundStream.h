@@ -3,6 +3,9 @@
 
 #include <string>
 #include <exception>
+#include <vector>
+#include <algorithm>
+#include <cstring>
 
 class SoundStreamException
 {
@@ -53,16 +56,16 @@ class SoundStream
         return bufferSizeVar;
     }
 
-    void setBufferSize(unsigned long newBufferSize)
+    virtual void setBufferSize(unsigned long newBufferSize)
     {
         bufferSizeVar = newBufferSize;
     }
 
 //    virtual unsigned long readFrames(char * buffer) = 0;
-    virtual unsigned long readFrames(char * buffer, unsigned long frames) throw(SoundStreamException) = 0;
+    virtual unsigned long readFrames(char * buffer, unsigned long frames) = 0;
 
 //    unsigned long writeFrames(const char * buffer) = 0;
-    virtual unsigned long writeFrames(const char * buffer, unsigned long frames) throw(SoundStreamException) = 0;
+    virtual unsigned long writeFrames(const char * buffer, unsigned long frames) = 0;
 
     bool fail() const noexcept
     {
@@ -116,7 +119,7 @@ protected:
     unsigned int numChannelsVar;
     unsigned int sampleRateVar;
     unsigned int sampleSizeVar; // in bits for one channel
-   // unsigned long bufferSizeVar; // in frames
+    unsigned long bufferSizeVar; // in frames
     std::string failStringVar;
     bool failBit;
     bool eofBit;
@@ -125,19 +128,48 @@ protected:
 class InputSoundStream: public SoundStream
 {
     public:
-    virtual unsigned long writeFrames(char *buffer, unsigned long frames)
+    virtual unsigned long writeFrames(const char *buffer, unsigned long frames)
     {
-        throw SoundStreamException("Can't write to InputSoundStream.");
+        throw SoundStreamException("Can't read from OutputSoundStream.");
     }
 };
 
 class OutputSoundStream: public SoundStream
 {
     public:
-    virtual unsigned long readFrames(char *buffer, unsigned long frames) const
+    virtual unsigned long readFrames(char *buffer, unsigned long frames)
     {
-        throw SoundStreamException("Can't read from OutputSoundStream.");
+        throw SoundStreamException("Can't write to InputSoundStream.");
     }
+};
+
+class ConnectorSoundStream: public SoundStream
+{
+public:
+    virtual void setBufferSize(unsigned long newBufferSize)
+    {
+        data.resize(newBufferSize * frameSize());
+        SoundStream::setBufferSize(newBufferSize);
+    }
+
+    virtual unsigned long readFrames(char *buffer, unsigned long frames) throw(SoundStreamException)
+    {
+        if(frames < bufferSize())
+            frames = bufferSize();
+        std::memcpy(buffer, &data[0], frames*frameSize());
+        return frames;
+    }
+
+    virtual unsigned long writeFrames(const char *buffer, unsigned long frames) throw(SoundStreamException)
+    {
+        if(frames < bufferSize())
+            frames = bufferSize();
+        std::memcpy(&data[0], buffer, frames*frameSize());
+        return frames;
+    }
+private:
+
+    std::vector<char> data;
 };
 
 #endif // _SOUND_STREAM_H_

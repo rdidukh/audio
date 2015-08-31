@@ -6,6 +6,8 @@ int main(int argc, char * argv[])
 {
 	assert(argc == 2);
 
+    unsigned long frames = 10000;
+
     WavFileInputSoundStream waveFile(argv[1]);
 
     if(waveFile.fail())
@@ -14,7 +16,11 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
-	LinuxPlaybackDevice device("default");
+    std::cout << "channels = " << waveFile.channels() << std::endl;
+    std::cout << "sampleRate = " << waveFile.sampleRate() << std::endl;
+//    std::cout <<
+
+    LinuxPlaybackDevice device("default", waveFile.channels(), waveFile.sampleRate(), waveFile.sampleSize(), frames);
 
     if(device.fail())
     {
@@ -22,10 +28,8 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    unsigned long frames = 1000;
-
     waveFile.setBufferSize(frames);
-    device.setBufferSize(frames);
+   // device.setBufferSize(frames);
 
     SimpleAudioDevice player(waveFile, device);
 

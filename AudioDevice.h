@@ -25,7 +25,7 @@ class SimpleAudioDevice: public AudioDevice
         buffer.resize(bufferSize);
     }
 
-    void process()
+    virtual void process()
     {
         unsigned long frames = bufferSize/input->frameSize();
         unsigned long readFrames = input->readFrames(&buffer[0], frames);

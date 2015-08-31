@@ -14,8 +14,8 @@ class LinuxPlaybackDevice: public OutputSoundStream
 
 	public:
 	
-	LinuxPlaybackDevice(const std::string & deviceName);
-    unsigned int writeFrames(char * buffer, unsigned long frames) throw(SoundStreamException);
+    LinuxPlaybackDevice(const std::string & deviceName, unsigned int numChannels, unsigned int sampleRate, unsigned int sampleSize, unsigned long frames);
+    virtual unsigned long writeFrames(const char * buffer, unsigned long frames);
 	~LinuxPlaybackDevice();
 
 	void setFormat(unsigned int bits)
@@ -35,16 +35,13 @@ class LinuxPlaybackDevice: public OutputSoundStream
 
     virtual void setChannels(unsigned int numChannels)
 	{
-		int rc = snd_pcm_hw_params_set_channels(handle, params, numChannels);
-        if(rc < 0) setFailString("LinuxPlaybackDevice::setChannels failed");
+        setChannelsPrivate(numChannels);
 	}
 
-	void setSampleRate(unsigned int sampleRate)
-	{
-		int dir = 0;
-		int rc = snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
-        if(rc < 0) setFail(true);
-	}
+    virtual void setSampleRate(unsigned int sampleRate)
+    {
+        setSampleRatePrivate(sampleRate);
+    }
 
 	void setFrames(unsigned int frames)
 	{
@@ -71,6 +68,24 @@ class LinuxPlaybackDevice: public OutputSoundStream
 		int rc = snd_pcm_hw_params(handle, params);
 		if (rc < 0) throw("setParams");
 	}
+
+private:
+
+    void setChannelsPrivate(unsigned int numChannels)
+    {
+        int rc = snd_pcm_hw_params_set_channels(handle, params, numChannels);
+        if(rc < 0) setFailString("LinuxPlaybackDevice::setChannelsPrivate failed");
+        SoundStream::setChannels(numChannels);
+    }
+
+    void setSampleRatePrivate(unsigned int sampleRate)
+    {
+        int dir = 0;
+        int rc = snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+        if(rc < 0) setFail(true);
+        SoundStream::setSampleRate(sampleRate);
+    }
+
 };
 
 #endif // _LINUX_PLAYBACK_DEVICE_

@@ -1,11 +1,10 @@
 #include "LinuxPlaybackDevice.h"
 
-LinuxPlaybackDevice::LinuxPlaybackDevice(const std::string & deviceName, unsigned int numChannels, unsigned int sampleRate, unsigned int frames):
+LinuxPlaybackDevice::LinuxPlaybackDevice(const std::string & deviceName, unsigned int numChannels, unsigned int sampleRate, unsigned int bitsPerSample, unsigned long frames):
 handle(nullptr),
 params(nullptr)
 {
 	int rc;
-	int dir;
 
 	rc = snd_pcm_open(&handle, deviceName.c_str(),
                 SND_PCM_STREAM_PLAYBACK, 0);		
@@ -19,18 +18,22 @@ params(nullptr)
 	snd_pcm_hw_params_set_access(handle, params,
                   SND_PCM_ACCESS_RW_INTERLEAVED);
 
-    setFormat();
+    setSampleSize(bitsPerSample);
 
-	setChannels(numChannels);
+//    this->set
 
-	setSampleRate(sampleRate);
+    setFormat(bitsPerSample);
 
-	setFrames(frames);
+    setChannelsPrivate(numChannels);
+
+    setSampleRatePrivate(sampleRate);
+
+    setFrames(frames);
 
 	setParams();
 }	
 
-int LinuxPlaybackDevice::write(char * buffer, unsigned long frames)
+unsigned long LinuxPlaybackDevice::writeFrames(const char * buffer, unsigned long frames)
 {
 	int rc = snd_pcm_writei(handle, buffer, frames);
 	if (rc == -EPIPE)
@@ -43,12 +46,8 @@ int LinuxPlaybackDevice::write(char * buffer, unsigned long frames)
 	{
 		fprintf(stderr, "error from writei: %s\n", snd_strerror(rc));
 	}
-	else if (rc != (int)frames)
-	{
-		fprintf(stderr,
-          "short write, write %d frames\n", rc);
-	}
-	return rc;
+
+    return static_cast<unsigned long>(rc);
 }
 
 LinuxPlaybackDevice::~LinuxPlaybackDevice()
@@ -59,9 +58,9 @@ LinuxPlaybackDevice::~LinuxPlaybackDevice()
 		snd_pcm_close(handle);
 	}
 
-	if(params)
+    //if(params)
 	{
-		snd_pcm_hw_params_free(params);
+        //snd_pcm_hw_params_free(params);
 	}
 }
 

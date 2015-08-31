@@ -30,7 +30,7 @@ class WavFileInputSoundStream: public InputSoundStream
 
     WavFileInputSoundStream(const std::string & fileName);
 	
-    unsigned long readFrames(char * buffer, unsigned long frames) throw(SoundStreamException)
+    virtual unsigned long readFrames(char * buffer, unsigned long frames)
 	{
         unsigned long bytesPerFrame = this->frameSize();
 
@@ -62,6 +62,11 @@ class WavFileInputSoundStream: public InputSoundStream
 		return res;
 	}
     */
+
+    virtual bool eof() const noexcept
+    {
+        return index >= numFrames;
+    }
 };
 
 #endif // _WAV_FILE_H_

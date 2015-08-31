@@ -35,12 +35,12 @@ WavFileInputSoundStream::WavFileInputSoundStream(const std::string & fileName): 
 
 		read(file, chunkId);
 
-		if(std::string(chunkId, 4) != "WAVE")
+        if(std::string(chunkId, 4) != "WAVE")
 			throw std::string("Not a wave file(2)");
 
 		read(file, chunkId);
 
-        if(std::string(chunkId, 4) != "fmt " && std::string(chunkId, 4) != "smpl")
+        if(std::string(chunkId, 4) != "fmt ")
 			throw std::string("Not a wave file(3)");
 
 		uint32_t subchunkSize;
@@ -64,9 +64,13 @@ WavFileInputSoundStream::WavFileInputSoundStream(const std::string & fileName): 
 		if(numChannels != 1 && numChannels != 2)
 			throw std::string("Not supported number of channels: ")+std::to_string(numChannels);
 
+        setChannels(numChannels);
+
         uint32_t sampleRate;
 
 		read(file, sampleRate);
+
+        setSampleRate(sampleRate);
 
 		read(file, byteRate);
 
@@ -82,7 +86,7 @@ WavFileInputSoundStream::WavFileInputSoundStream(const std::string & fileName): 
 
 		read(file, chunkId);
 
-		if(std::string(chunkId, 4) != "data")
+        if(std::string(chunkId, 4) != "data")
 			throw std::string("Unexpected chunk id: ") + std::string(chunkId, 4);
 
 		read(file, dataSize);

@@ -8,8 +8,6 @@
 
 class SimpleDeck
 {
-	SoundStream & soundStream;
-
     public:
 	void load(const std::string & fileName)
 	{
