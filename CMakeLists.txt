@@ -4,14 +4,12 @@ project(audio)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
 set(SOURCE
-	main.cpp
-	WavFileSoundStream.cpp
-	LinuxPlaybackDevice.cpp
-	SimpleDeck.cpp
+	source/main.cpp
+	source/RingBuffer.cpp
 )	
 
 add_executable(${PROJECT_NAME} ${SOURCE})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ".")
+target_include_directories(${PROJECT_NAME} PUBLIC "./include")
 
 target_link_libraries(${PROJECT_NAME} asound)
