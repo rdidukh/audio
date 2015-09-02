@@ -41,8 +41,12 @@ public:
             mLeft += sizeof(t);
             updateLeftRight();
         }
+        else
+        {
+            read((char *)&t, sizeof(t));
+        }
 
-        return read((char *)&t, sizeof(t));
+        return sizeof(t);
     }
 
 
