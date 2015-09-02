@@ -51,6 +51,8 @@ include(cmake/internal_utils.cmake)
 
 config_compiler_and_linker()  # Defined in internal_utils.cmake.
 
+#SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out)
+
 # Where Google Test's .h files can be found.
 include_directories(
   ${gtest_SOURCE_DIR}/include

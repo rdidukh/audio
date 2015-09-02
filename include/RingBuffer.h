@@ -16,10 +16,23 @@ struct RingBuffer
     size_t read(char * buffer, size_t count);
 
 	template<class T> 
-    size_t read(T & t);
+    size_t read(T & t); 
 
+private:
 	char * data;
 	size_t size;
 	size_t left;
 	size_t right;	
+
+#ifdef TEST
+public:
+    void getDataForTest(char * & d, size_t & s, size_t & l, size_t & r)
+    {
+        d = data;
+        s = size;
+        l = left;
+        r = right;
+    }
+#endif
+
 };
