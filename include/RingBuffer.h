@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstddef>
-
 class RingBuffer
 {
 public:
@@ -15,9 +14,10 @@ public:
     template<class T> size_t write(const T & t)
     {
         if(free() < sizeof(t)) return 0;
-        if(sizeof(t) + mRight <= mSize)
+        size_t ind = mRight < mSize ? mRight : mRight - mSize;
+        if(sizeof(t) + ind <= mSize)
         {
-            T * ptr = reinterpret_cast<T *>(&mBuffer[mRight]);
+            T * ptr = (T *)(&mBuffer[ind]);
             *ptr = t;
             mRight += sizeof(t);
             return sizeof(t);
