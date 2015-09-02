@@ -1,5 +1,12 @@
 #include "LinuxPlaybackDevice.h"
 
+void LinuxPlaybackDevice::process()
+{
+
+
+}
+
+#if 0
 LinuxPlaybackDevice::LinuxPlaybackDevice(const std::string & deviceName, unsigned int numChannels, unsigned int sampleRate, unsigned int bitsPerSample, unsigned long frames):
 handle(nullptr),
 params(nullptr)
@@ -64,3 +71,4 @@ LinuxPlaybackDevice::~LinuxPlaybackDevice()
 	}
 }
 
+#endif // 0

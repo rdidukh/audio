@@ -6,6 +6,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -DTESTMETHODS")
 set(SOURCE
 	source/main.cpp
 	source/RingBuffer.cpp
+        source/AudioInput.cpp
+        source/LinuxPlaybackDevice.cpp
 )	
 
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out)

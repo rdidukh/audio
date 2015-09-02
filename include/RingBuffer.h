@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cassert>
 class RingBuffer
 {
 public:
@@ -15,17 +16,19 @@ public:
     {
         if(free() < sizeof(t)) return 0;
         size_t ind = mRight < mSize ? mRight : mRight - mSize;
+        assert(ind >= 0 && ind < mSize);
         if(sizeof(t) + ind <= mSize)
         {
             T * ptr = (T *)(&mBuffer[ind]);
             *ptr = t;
             mRight += sizeof(t);
-            return sizeof(t);
         }
         else
         {
             write((const char *)&t, sizeof(t));
         }
+
+        selfTest();
 
         return sizeof(t);
     }
@@ -46,6 +49,8 @@ public:
             read((char *)&t, sizeof(t));
         }
 
+        selfTest();
+
         return sizeof(t);
     }
 
@@ -53,6 +58,15 @@ public:
 private:
 
     void updateLeftRight();
+
+    inline void selfTest() const
+    {
+        assert(mLeft >= 0 && mRight >= 0);
+        assert(mRight > mLeft || (mRight == 0 && mLeft == 0));
+        assert(mLeft < mSize);
+        assert(mRight < mSize+mSize);
+        assert(mRight - mLeft <= mSize);
+    }
 
     char * mBuffer;
     size_t mSize;

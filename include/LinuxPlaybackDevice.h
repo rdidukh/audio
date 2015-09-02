@@ -5,12 +5,22 @@
 #include <alsa/asoundlib.h>
 #include <string>
 
-#include "SoundStream.h"
+#include "AudioDevice.h"
 
-class LinuxPlaybackDevice: public OutputSoundStream
+class LinuxPlaybackDevice: public AudioDevice
 {
-	snd_pcm_t *handle;
-	snd_pcm_hw_params_t *params;
+public:
+    virtual void process();
+private:
+
+    snd_pcm_t *mHandle;
+    snd_pcm_hw_params_t *mParams;
+    AudioInput mInput;
+    size_t
+};
+
+#if 0
+
 
 	public:
 	
@@ -87,5 +97,5 @@ private:
     }
 
 };
-
+#endif // 0
 #endif // _LINUX_PLAYBACK_DEVICE_

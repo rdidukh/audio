@@ -149,6 +149,17 @@ TEST(RingBuffer, all)
     EXPECT_EQ(0, rb.avail());
     EXPECT_EQ(10, rb.free());
     EXPECT_EQ(i32, o32);
+
+    RingBuffer big(4096);
+    char buffer[4096];
+    big.write(buffer, 4096);
+    big.read(buffer, 4095);
+    res = big.write(buffer, 1000);
+    res = big.write(buffer, 1000);
+    EXPECT_EQ(1000, res);
+    EXPECT_EQ(4096, big.size());
+    EXPECT_EQ(2001, big.avail());
+    EXPECT_EQ(2095, big.free());
 }
 
 

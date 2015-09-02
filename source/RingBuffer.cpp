@@ -27,17 +27,25 @@ size_t RingBuffer::write(const char * buffer, size_t count)
     if(count > free())
         count = free();
 
-    if(count + mRight <= mSize)
+    size_t index = mRight;
+    if(index >= mSize) index -= mSize;
+
+    if(count + index <= mSize)
     {
-        std::memcpy(&mBuffer[mRight], buffer, count);
+        assert(index <= mSize);
+        std::memcpy(&mBuffer[index], buffer, count);
     }
     else
     {
-        std::memcpy(&mBuffer[mRight], buffer, mSize-mRight);
-        std::memcpy(&mBuffer[0], &buffer[mSize-mRight], count - (mSize-mRight));
+        assert(mSize > index);
+        assert(count > (mSize-index));
+        std::memcpy(&mBuffer[index], buffer, mSize-index);
+        std::memcpy(&mBuffer[0], &buffer[mSize-index], count - (mSize-index));
     }
 
     mRight += count;
+
+    selfTest();
 
     return count;
 }
@@ -71,5 +79,13 @@ void RingBuffer::updateLeftRight()
         mLeft -= mSize;
         mRight -= mSize;
     }
+
+    if(mLeft == mRight)
+    {
+        mLeft = 0;
+        mRight = 0;
+    }
+    selfTest();
 }
+
 
