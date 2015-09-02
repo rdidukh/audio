@@ -2,19 +2,24 @@
 
 #include <cstring>
 
-RingBuffer::RingBuffer(size_t bufferSize): data(new char[bufferSize]), size(bufferSize), left(0), right(0)
+RingBuffer::RingBuffer(size_t bufferSize): mBuffer(new char[bufferSize]), mSize(bufferSize), mLeft(0), mRight(0)
 {
 
+}
+
+size_t RingBuffer::size() const
+{
+    return mSize;
 }
 
 size_t RingBuffer::free() const
 {
-    return size - (right - left);
+    return mSize - (mRight - mLeft);
 }
 
-size_t RingBuffer::available() const
+size_t RingBuffer::avail() const
 {
-    return right - left;
+    return mRight - mLeft;
 }
 
 size_t RingBuffer::write(const char * buffer, size_t count)
@@ -22,58 +27,49 @@ size_t RingBuffer::write(const char * buffer, size_t count)
     if(count > free())
         count = free();
 
-    if(count + right <= size)
+    if(count + mRight <= mSize)
     {
-        std::memcpy(&data[right], buffer, count);
+        std::memcpy(&mBuffer[mRight], buffer, count);
     }
     else
     {
-        std::memcpy(&data[right], buffer, size-right);
-        std::memcpy(&data[0], &buffer[size-right], count - (size-right));
+        std::memcpy(&mBuffer[mRight], buffer, mSize-mRight);
+        std::memcpy(&mBuffer[0], &buffer[mSize-mRight], count - (mSize-mRight));
     }
 
-    right += count;
+    mRight += count;
 
     return count;
-}
-
-template<class T>
-size_t RingBuffer::write(const T & t)
-{
-    return write((const char *)&t, sizeof(t));
 }
 
 size_t RingBuffer::read(char * buffer, size_t count)
 {
-    if(count > available())
-        count = available();
+    if(count > avail())
+        count = avail();
 
-    if(left + count <= size)
+    if(mLeft + count <= mSize)
     {
-        std::memcpy(buffer, &data[left], count);
+        std::memcpy(buffer, &mBuffer[mLeft], count);
     }
     else
     {
-        std::memcpy(buffer, &data[left], size-left);
-        std::memcpy(&buffer[size-left], &data[0], count-(size-left));
+        std::memcpy(buffer, &mBuffer[mLeft], mSize-mLeft);
+        std::memcpy(&buffer[mSize-mLeft], &mBuffer[0], count-(mSize-mLeft));
     }
 
-    left += count;
+    mLeft += count;
 
-    if(left >= size)
-    {
-        left -= size;
-        right -= size;
-    }
+    updateLeftRight();
 
     return count;
 }
 
-template<class T>
-size_t RingBuffer::read(T & t)
+void RingBuffer::updateLeftRight()
 {
-    return read((char *)&t, sizeof(t));
+    if(mLeft >= mSize)
+    {
+        mLeft -= mSize;
+        mRight -= mSize;
+    }
 }
-
-
 
