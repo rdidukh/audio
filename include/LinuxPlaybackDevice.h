@@ -5,18 +5,19 @@
 #include <alsa/asoundlib.h>
 #include <string>
 
+#include "AudioInput.h"
 #include "AudioDevice.h"
+
 
 class LinuxPlaybackDevice: public AudioDevice
 {
 public:
     virtual void process();
 private:
-
     snd_pcm_t *mHandle;
     snd_pcm_hw_params_t *mParams;
     AudioInput mInput;
-    size_t
+    size_t mPeriodSize;
 };
 
 #if 0

@@ -17,6 +17,9 @@ add_subdirectory(test)
 
 add_executable(${PROJECT_NAME} ${SOURCE})
 
+#enable_testing()
+#add_test(NAME test COMMAND unittest)
+
 target_include_directories(${PROJECT_NAME} PUBLIC "./include")
 
 target_link_libraries(${PROJECT_NAME} asound)

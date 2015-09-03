@@ -3,7 +3,6 @@
 void LinuxPlaybackDevice::process()
 {
 
-
 }
 
 #if 0
