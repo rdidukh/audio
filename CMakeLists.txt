@@ -8,6 +8,8 @@ set(SOURCE
 	source/RingBuffer.cpp
         source/AudioInput.cpp
         source/LinuxPlaybackDevice.cpp
+        source/FDEventPool.cpp
+        source/FDEvent.cpp
 )	
 
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out)
